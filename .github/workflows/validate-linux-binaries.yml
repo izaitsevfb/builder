@@ -1,36 +1,43 @@
 name: Validate linux binaries
 
 on:
-  push:
-    branches:
-      main
-    paths:
-      - .github/workflows/validate-linux-binaries.yml
-      - .test/smoke_test/*
-  pull_request:
-    paths:
-      - .github/workflows/validate-linux-binaries.yml
-      - .test/smoke_test/*
+  workflow_call:
+    inputs:
+      channel:
+        description: "Channel to use (nightly, test, release, all)"
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Channel to use (nightly, test, release, all)"
+        required: true
+        type: choice
+        options:
+          - release
+          - nightly
+          - test
+          - all
+
 jobs:
   generate-conda-matrix:
     uses: pytorch/test-infra/.github/workflows/generate_binary_build_matrix.yml@main
     with:
       package-type: conda
       os: linux
-      channel: nightly
+      channel: ${{ inputs.channel }}
   generate-wheel-matrix:
     uses: pytorch/test-infra/.github/workflows/generate_binary_build_matrix.yml@main
     with:
       package-type: wheel
       os: linux
-      channel: nightly
+      channel: ${{ inputs.channel }}
   generate-libtorch-matrix:
     uses: pytorch/test-infra/.github/workflows/generate_binary_build_matrix.yml@main
     with:
       package-type: libtorch
       os: linux
-      channel: nightly
-
+      channel: ${{ inputs.channel }}
 
   validate-linux-binaries-conda:
     needs: generate-conda-matrix
